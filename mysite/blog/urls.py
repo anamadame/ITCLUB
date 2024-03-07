@@ -5,6 +5,8 @@ from .views import *
 
 urlpatterns = [
 
+    path('accounts/', include('allauth.urls')),
+
     path('user/', UserViewSets.as_view({'get': 'list', 'post': 'create'}),
          name='user_list'),
     path('user/<int:pk>/', UserViewSets.as_view({'get': 'retrieve', 'put': 'update', 'delete': 'destroy'}),
@@ -21,11 +23,6 @@ urlpatterns = [
     path('model/<int:pk>/', ModelViewSets.as_view({'get': 'retrieve', 'put': 'update', 'delete': 'destroy'}),
          name='model_detail'),
 
-
-    path('category/', CategoryViewSets.as_view({'get': 'list', 'post': 'create'}),
-         name='category_list'),
-    path('category/<int:pk>/', CategoryViewSets.as_view({'get': 'retrieve', 'put': 'update', 'delete': 'destroy'}),
-         name='category_detail'),
 
 
     path('product/', ProductViewSets.as_view({'get': 'list', 'post': 'create'}),

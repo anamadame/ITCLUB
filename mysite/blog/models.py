@@ -1,20 +1,13 @@
 from django.db import models
 
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import User
 from django.db import models
 
 
 
-class User(AbstractUser):
-    # Дополнительные поля можно добавить здесь
-    pass
-
-    def __str__(self):
-        return self.username
-
-
 class Brand(models.Model):
     name = models.CharField(max_length=32, unique=True)
+    photo = models.ImageField(upload_to="images/brand/", blank=True, null=True)
 
     def __str__(self):
         return self.name
@@ -27,36 +20,41 @@ class Model(models.Model):
     def __str__(self):
         return self.name
 
-
-class Category(models.Model):
-    model = models.ForeignKey(Model, on_delete=models.CASCADE, default=1)
-    name = models.CharField(max_length=32, unique=True)
+class Color(models.Model):
+    name = models.CharField(max_length=50)
+    code = models.CharField(max_length=10, null=True, blank=True)  # Например, можно использовать шестнадцатеричное значение цвета
 
     def __str__(self):
-        return self.name
+        return self.name or self.code
+
+    class Meta:
+        verbose_name = "Цвет"
+        verbose_name_plural = "Цвета"
+
 
 
 class Product(models.Model):
+    model = models.ForeignKey(Model, on_delete=models.CASCADE, default=1)
     name = models.CharField(max_length=100, verbose_name='название продукта')
     description = models.TextField(verbose_name='описание')
-    color = models.CharField(max_length=50)
-    screen_size = models.CharField(max_length=32, verbose_name='размер экрана')
+    color = models.ManyToManyField(Color,  blank=True)
+    screen_size = models.CharField(max_length=32, verbose_name='размер экрана', null=True, blank=True)
     screen_technology = models.CharField(max_length=50,
-                                         verbose_name='технология, используемая на экране (например, OLED)')
-    processor = models.CharField(max_length=50, verbose_name='процессор')
-    rom = models.IntegerField()
-    ram = models.IntegerField(verbose_name="количество ядер")
-    camera_resolution = models.CharField(max_length=50)
-    video_resolution = models.CharField(max_length=50)
+                                         verbose_name='технология, используемая на экране (например, OLED)', null=True, blank=True)
+    processor = models.CharField(max_length=50, verbose_name='процессор', null=True, blank=True)
+    rom = models.IntegerField(null=True, blank=True)
+    ram = models.IntegerField(verbose_name="количество ядер", null=True, blank=True)
+    camera_resolution = models.CharField(max_length=50, null=True, blank=True)
+    video_resolution = models.CharField(max_length=50, null=True, blank=True)
     price = models.DecimalField(max_digits=12, decimal_places=2)
-    warranty = models.IntegerField()
+    warranty = models.IntegerField(null=True, blank=True)
 
     def __str__(self):
         return self.name
 
 
 class ProductPhoto(models.Model):
-    photo = models.ImageField(upload_to="images/", blank=True, null=True)
+    photo = models.ImageField(upload_to="images/product_image/", blank=True, null=True)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
 
 
@@ -79,16 +77,6 @@ class Order(models.Model):
         return self.user_id
 
 
-class Color(models.Model):
-    name = models.CharField(max_length=50)
-    code = models.CharField(max_length=10)  # Например, можно использовать шестнадцатеричное значение цвета
-
-    def __str__(self):
-        return self.name or self.code
-
-    class Meta:
-        verbose_name = "Цвет"
-        verbose_name_plural = "Цвета"
 
 
 class Rating(models.Model):
@@ -120,13 +108,14 @@ class Basket(models.Model):
 class Reviews(models.Model):
     """Отзывы"""
     author = models.ForeignKey(User, models.CASCADE)
+    text = models.CharField(max_length=300)
     parent = models.ForeignKey(
         'self', verbose_name="Родитель", on_delete=models.SET_NULL, blank=True, null=True
     )
-    product = models.ForeignKey(Product, verbose_name="фильм", on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, verbose_name="продукт", on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"{self.name} - {self.product}"
+        return f"{self.author} - {self.product}"
 
     class Meta:
         verbose_name = "Отзыв"
